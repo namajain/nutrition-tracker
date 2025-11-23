@@ -1,5 +1,5 @@
 import streamlit as st
-from api_client import get_recipes, create_recipe, update_recipe, delete_recipe
+from api_client import get_recipes, create_recipe, update_recipe, delete_recipe, clear_recipe_cache
 import requests
 import pandas as pd
 from api_client import API_URL
@@ -219,6 +219,7 @@ with tab1:
                 res = update_recipe(r['id'], payload)
                 if res.status_code == 200:
                     st.success("✅ Recipe updated successfully!")
+                    clear_recipe_cache()
                     st.rerun()
                 else:
                     st.error(f"❌ Update failed: {res.text}")
@@ -227,6 +228,7 @@ with tab1:
                 if ac2.button("🔄 Flatten to Direct", key=f"flat_{r['id']}"):
                     requests.post(f"{API_URL}/recipes/{r['id']}/flatten")
                     st.success("✅ Converted to Direct recipe!")
+                    clear_recipe_cache()
                     st.rerun()
             else:
                 ac2.markdown("")
@@ -235,6 +237,7 @@ with tab1:
                 res = delete_recipe(r['id'])
                 if res.status_code == 200:
                     st.success("✅ Recipe deleted!")
+                    clear_recipe_cache()
                     st.rerun()
                 else:
                     st.error("❌ Failed to delete recipe.")
@@ -277,6 +280,7 @@ with tab2:
                 res = create_recipe(payload)
                 if res.status_code == 200:
                     st.success("✅ Recipe created successfully!")
+                    clear_recipe_cache()
                     st.rerun()
                 else:
                     st.error(f"❌ Error: {res.text}")

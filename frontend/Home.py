@@ -99,6 +99,9 @@ st.markdown("""
 st.title("🥦 Daily Food Logger")
 st.markdown("##### Track your nutrition journey, one meal at a time")
 
+# Fetch recipes once
+all_recipes = get_recipes()
+
 # Sidebar content
 with st.sidebar:
     st.markdown("### 🎯 Quick Stats")
@@ -109,7 +112,7 @@ with st.sidebar:
     today_logs = get_daily_log(today_str)
     
     if today_logs:
-        recipes = get_recipes()
+        recipes = all_recipes
         recipe_dict = {r['id']: r for r in recipes}
         
         total_kcal = 0
@@ -167,7 +170,11 @@ st.markdown("---")
 # 1. View Today's Log
 st.markdown("### 📊 Today's Intake")
 st.markdown("")
-logs = get_daily_log(date_str)
+
+if date_str == today_str:
+    logs = today_logs
+else:
+    logs = get_daily_log(date_str)
 
 if logs:
     total_kcal = 0
@@ -176,7 +183,7 @@ if logs:
     total_f = 0
     
     # Fetch all recipes to map nutrition
-    recipes = get_recipes()
+    recipes = all_recipes
     recipe_dict = {r['id']: r for r in recipes}
     
     # Display each meal entry
@@ -271,7 +278,7 @@ st.markdown("---")
 st.markdown("### ➕ Log New Meal")
 st.markdown("")
 
-recipes = get_recipes()
+recipes = all_recipes
 if not recipes:
     st.warning("⚠️ No recipes found. Create your first recipe in **Recipe Manager** or use **AI Import** to get started!")
 else:

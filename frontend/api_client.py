@@ -1,14 +1,19 @@
 import requests
 import os
+import streamlit as st
 
 API_URL = "http://localhost:8000"
 
+@st.cache_data(ttl=300, show_spinner=False)
 def get_recipes():
     try:
         res = requests.get(f"{API_URL}/recipes")
         return res.json() if res.status_code == 200 else []
     except:
         return []
+
+def clear_recipe_cache():
+    get_recipes.clear()
 
 def get_daily_log(date_str):
     try:

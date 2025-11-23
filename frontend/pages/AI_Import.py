@@ -1,5 +1,5 @@
 import streamlit as st
-from api_client import analyze_image, create_recipe
+from api_client import analyze_image, create_recipe, clear_recipe_cache
 
 st.set_page_config(page_title="AI Import", page_icon="✨", layout="wide", initial_sidebar_state="expanded")
 
@@ -62,6 +62,9 @@ uploaded_file = st.file_uploader("Choose a meal photo", type=["jpg", "jpeg", "pn
 if "ai_draft" not in st.session_state:
     st.session_state.ai_draft = None
 
+if "selected_optional_ingredients" not in st.session_state:
+    st.session_state.selected_optional_ingredients = set()
+
 if uploaded_file:
     col1, col2 = st.columns([1, 1])
     with col1:
@@ -89,9 +92,10 @@ if st.session_state.ai_draft:
         
         # Edit ingredients
         ingredients = draft.get("ingredients", [])
+        optional_ingredients = draft.get("optional_ingredients", [])
         updated_ingredients = []
         
-        st.markdown("#### 🥗 Ingredients")
+        st.markdown("#### 🥗 Main Ingredients (Detected)")
         st.caption("Review and adjust AI-detected ingredients")
         for i, ing in enumerate(ingredients):
             st.markdown(f"**Ingredient {i+1}**")
@@ -121,6 +125,55 @@ if st.session_state.ai_draft:
                 }
             })
         
+        # Optional Ingredients Section
+        if optional_ingredients:
+            st.markdown("")
+            st.markdown("#### ✨ Optional Ingredients (AI Suggestions)")
+            st.caption("Check the box to include an ingredient, then adjust its details as needed")
+            
+            # Display each optional ingredient with full editing interface
+            for i, opt_ing in enumerate(optional_ingredients):
+                st.markdown(f"**Optional Ingredient {i+1}**")
+                
+                # Checkbox to include/exclude (with reason in help text)
+                include_checkbox = st.checkbox(
+                    f"Include {opt_ing['name']}",
+                    key=f"opt_check_{i}",
+                    value=False,
+                    help=opt_ing.get('reason', 'Commonly used in this dish')
+                )
+                
+                # Always show editing interface (editable regardless of checkbox state)
+                c1, c2, c3 = st.columns([3, 1, 1])
+                opt_name = c1.text_input(f"Name", value=opt_ing['name'], key=f"opt_name_{i}")
+                opt_qty = c2.number_input(f"Qty", value=float(opt_ing['quantity']), key=f"opt_qty_{i}", min_value=0.0)
+                opt_unit = c3.text_input(f"Unit", value=opt_ing['unit'], key=f"opt_unit_{i}")
+                
+                # Expose nutrition per 100g
+                with st.expander(f"📊 Nutrition per 100g for {opt_ing['name']}"):
+                    nut = opt_ing.get("nutrition_per_100g", {})
+                    n1, n2, n3, n4 = st.columns(4)
+                    opt_kcal = n1.number_input(f"🔥 Kcal", value=float(nut.get("energy_kcal", 0.0)), key=f"opt_kcal_{i}")
+                    opt_prot = n2.number_input(f"💪 Protein (g)", value=float(nut.get("protein_g", 0.0)), key=f"opt_prot_{i}")
+                    opt_carb = n3.number_input(f"🌾 Carbs (g)", value=float(nut.get("carbs_g", 0.0)), key=f"opt_carb_{i}")
+                    opt_fat = n4.number_input(f"🥑 Fat (g)", value=float(nut.get("fat_g", 0.0)), key=f"opt_fat_{i}")
+                
+                # Only add to ingredients list if checked
+                if include_checkbox:
+                    updated_ingredients.append({
+                        "ingredient_name": opt_name,
+                        "quantity": opt_qty,
+                        "unit": opt_unit,
+                        "nutrition_per_100g": {
+                            "energy_kcal": opt_kcal,
+                            "protein_g": opt_prot,
+                            "carbs_g": opt_carb,
+                            "fat_g": opt_fat
+                        }
+                    })
+                
+                st.markdown("")  # Add spacing between optional ingredients
+        
         st.markdown("---")
         st.markdown("#### 💾 Save Options")
         save_type = st.radio("📂 Save Mode", ["Granular (Editable Ingredients)", "Direct (Final Nutrition Only)"], help="Granular keeps ingredients separate, Direct saves only total nutrition")
@@ -145,6 +198,8 @@ if st.session_state.ai_draft:
                 
                 st.success("✅ Recipe saved successfully!")
                 st.session_state.ai_draft = None
+                st.session_state.selected_optional_ingredients = set()
+                clear_recipe_cache()
                 st.rerun()
             else:
                 st.error(f"❌ Failed to save: {res.text}")

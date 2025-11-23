@@ -15,8 +15,8 @@ def on_startup():
     init_db()
 
 @app.post("/analyze-image")
-async def analyze_image(file: UploadFile = File(...)):
-    contents = await file.read()
+def analyze_image(file: UploadFile = File(...)):
+    contents = file.file.read()
     result = AIService.analyze_image(contents, file.content_type)
     return result
 
