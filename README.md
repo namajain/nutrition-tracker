@@ -40,6 +40,8 @@ OPENAI_API_KEY=your_api_key_here
 
 ## 🚀 Running the Application
 
+### Development Mode (Windows/Mac/Linux)
+
 1. Start the FastAPI backend:
 ```bash
 uvicorn backend.main:app --reload
@@ -51,6 +53,39 @@ streamlit run frontend/Home.py
 ```
 
 3. Open your browser to `http://localhost:8501`
+
+### Production Mode (Linux)
+
+For deployment on Linux servers with persistent background processes:
+
+1. Make scripts executable (first time only):
+```bash
+chmod +x run.sh stop.sh
+```
+
+2. Start services (runs in background, persists after SSH logout):
+```bash
+./run.sh
+```
+
+The script will:
+- Start FastAPI backend on port 8000
+- Start Streamlit frontend on port 80 (requires sudo)
+- Run both services with nohup for persistence
+- Log output to `logs/backend.log` and `logs/frontend.log`
+
+3. Monitor logs:
+```bash
+tail -f logs/backend.log    # Backend logs
+tail -f logs/frontend.log   # Frontend logs
+```
+
+4. Stop services:
+```bash
+./stop.sh
+```
+
+**Note:** Port 80 requires sudo privileges. Ensure your user has sudo access or modify `run.sh` to use a different port.
 
 ## 📁 Project Structure
 

@@ -8,4 +8,4 @@ httpx
 requests
 python-multipart
 google-generativeai
-
+openai
