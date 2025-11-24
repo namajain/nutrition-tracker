@@ -9,7 +9,7 @@ cd "$SCRIPT_DIR"
 
 # Activate virtual environment
 echo "Activating virtual environment..."
-source venv/bin/activate
+source .venv/bin/activate
 
 mkdir -p logs
 
@@ -18,14 +18,14 @@ sudo fuser -k 8000/tcp 2>/dev/null || true
 fuser -k 8501/tcp 2>/dev/null || true
 
 echo "Starting FastAPI backend on port 8000..."
-nohup venv/bin/uvicorn backend.main:app --host 0.0.0.0 --port 8000 > logs/backend.log 2>&1 &
+nohup .venv/bin/uvicorn backend.main:app --host 0.0.0.0 --port 8000 > logs/backend.log 2>&1 &
 BACKEND_PID=$!
 echo "Backend started with PID: $BACKEND_PID"
 
 sleep 2
 
 echo "Starting Streamlit frontend on port 8501..."
-nohup venv/bin/streamlit run frontend/Home.py --server.port 8501 --server.address 0.0.0.0 --server.headless true > logs/frontend.log 2>&1 &
+nohup .venv/bin/streamlit run frontend/Home.py --server.port 8501 --server.address 0.0.0.0 --server.headless true > logs/frontend.log 2>&1 &
 FRONTEND_PID=$!
 echo "Frontend started with PID: $FRONTEND_PID"
 
