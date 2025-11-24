@@ -33,3 +33,4 @@ sudo fuser -k 80/tcp 2>/dev/null || true
 
 echo "Nutrition Tracker stopped."
 
+
